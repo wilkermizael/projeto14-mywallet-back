@@ -49,5 +49,27 @@ app.post('/cadastro', async (req, res) =>{
     }
 
 })
+const schemaLogin = joi.object({
+    email: joi.string().email().required(),
+    senha: joi.string().min(3).required()
+})
+app.post('/', async (req, res) =>{
+    const {email, senha} = req.body
+    const validation =schemaLogin.validate(req.body)
+    if(validation.error) return res.status(422).send('Erro na validação dos dados')
+    
+    try{
+        const usuario = await db.collection('users').findOne({email})
+        if(!usuario) return res.status(422).send('Usuario não cadastrado, faça cadastro')
+        const validateSenha = bcrypt.compareSync( senha, usuario.senha)
+        if(!validateSenha) return res.status(401).send('As senhas não coincidem')
+        res.sendStatus(200)
+
+    }catch(error){
+        return res.status(500).send(error.message)
+    }
+    
+
+})
 const port = process.env.PORT || 5000
 app.listen(port, ()=>console.log(`Servidor rodando na porta ${port}`))
