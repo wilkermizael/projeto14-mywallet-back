@@ -29,7 +29,7 @@ const db = mongoClient.db('Mywallet')
 const schemaCadastro = joi.object({
     nome: joi.string().required(),
     email: joi.string().email().required(),
-    senha: joi.string().required()
+    senha: joi.string().min(3).required()
 })
 app.post('/cadastro', async (req, res) =>{
     const {nome, senha, email} = req.body
@@ -37,13 +37,13 @@ app.post('/cadastro', async (req, res) =>{
 
     const validation = schemaCadastro.validate(req.body)
     
-    if(validation.error) return res.status(422).send('Dados invalidos')
+    if(validation.error) return res.status(422).send('Dados inválidos')
     
     try{
         const usuario = await db.collection('users').findOne({email})
-        if(usuario) return res.status(422).send('Usuário ja cadastrado')
+        if(usuario) return res.status(409).send('Usuário já cadastrado')
         await db.collection('users').insertOne({nome, email, senha:passwordCrypt})
-        return res.status(201).send('Criado com sucesso')
+        return res.sendStatus(201)
     }catch(error){
         return res.status(500).send(error.message)
     }
