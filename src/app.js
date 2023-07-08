@@ -80,11 +80,23 @@ app.post('/', async (req, res) =>{
     
 
 })
-
+const schemaRegistro = joi.object({
+    valor: joi.number().positive().precision(2).required(),
+    descricao: joi.string().required(),
+    fluxo: joi.string()
+})
 
 app.post('/transacao', async (req,res) =>{
-    const {valor, descricao, fluxo} = req.body
-    console.log({valor, descricao, fluxo})
+    const {valor, descricao, fluxo} = req.body;
+    const {authorization} = req.headers;
+    const token  = authorization.replace("Bearer ", "")
+    if(!token) return res.status(401).send('Não autorizado')
+    
+    const validation = (schemaRegistro.validate({...{valor, descricao}, fluxo}))
+    if(validation.error) return res.status(422).send(validation.error.message)
+    
+    await db.collection('transacao').insertOne({valor, descricao, fluxo})
+
     res.status(200).send("Transacao ok")
 })
 const port = process.env.PORT || 5000
