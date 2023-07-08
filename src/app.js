@@ -5,6 +5,7 @@ import joi from 'joi'
 import dotenv from 'dotenv'
 import bcrypt from 'bcrypt'
 import { v4 as uuid } from 'uuid';
+import dayjs from 'dayjs'
 
 const token = uuid();
 
@@ -89,13 +90,16 @@ const schemaRegistro = joi.object({
 app.post('/transacao', async (req,res) =>{
     const {valor, descricao, fluxo} = req.body;
     const {authorization} = req.headers;
+    const data= dayjs().format('DD-MM','pt-br').replace('-','/')
     const token  = authorization.replace("Bearer ", "")
+   
     if(!token) return res.status(401).send('Não autorizado')
     
     const validation = (schemaRegistro.validate({...{valor, descricao}, fluxo}))
     if(validation.error) return res.status(422).send(validation.error.message)
     
-    await db.collection('transacao').insertOne({valor, descricao, fluxo})
+  
+    await db.collection('transacao').insertOne({valor, descricao, fluxo, data})
 
     res.status(200).send("Transacao ok")
 })
