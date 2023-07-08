@@ -30,6 +30,7 @@
     "mongodb": "4.0",
     "nock": "^13.3.1",
     "nodemon": "^1.14.9",
-    "supertest": "^6.3.3"
+    "supertest": "^6.3.3",
+    "uuid": "^9.0.0"
   }
 }

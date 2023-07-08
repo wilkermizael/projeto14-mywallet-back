@@ -4,6 +4,9 @@ import {MongoClient} from 'mongodb'
 import joi from 'joi'
 import dotenv from 'dotenv'
 import bcrypt from 'bcrypt'
+import { v4 as uuid } from 'uuid';
+
+const token = uuid();
 
 //CRIAÇÃO DO APP
 
@@ -60,16 +63,29 @@ app.post('/', async (req, res) =>{
     
     try{
         const usuario = await db.collection('users').findOne({email})
-        if(!usuario) return res.status(422).send('Usuario não cadastrado, faça cadastro')
+        if(!usuario) return res.status(404).send('Usuario não cadastrado, faça cadastro')
         const validateSenha = bcrypt.compareSync( senha, usuario.senha)
         if(!validateSenha) return res.status(401).send('As senhas não coincidem')
-        res.sendStatus(200)
+
+        const token = uuid()
+        await db.collection('sessions').insertOne({userId:usuario._id, token})
+        
+        delete usuario.senha
+
+        res.status(200).send({...usuario, token})
 
     }catch(error){
         return res.status(500).send(error.message)
     }
     
 
+})
+
+
+app.post('/transacao', async (req,res) =>{
+    const {valor, descricao, fluxo} = req.body
+    console.log({valor, descricao, fluxo})
+    res.status(200).send("Transacao ok")
 })
 const port = process.env.PORT || 5000
 app.listen(port, ()=>console.log(`Servidor rodando na porta ${port}`))
