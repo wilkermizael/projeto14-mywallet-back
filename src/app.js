@@ -29,12 +29,18 @@ try{
 const db = mongoClient.db('Mywallet')
 
 
-//ROTAS
+//ESQUEMAS
 const schemaCadastro = joi.object({
     nome: joi.string().required(),
     email: joi.string().email().required(),
     senha: joi.string().min(3).required()
 })
+const schemaRegistro = joi.object({
+    valor: joi.number().positive().precision(2).required(),
+    descricao: joi.string().required(),
+    fluxo: joi.string()
+})
+//ROTAS
 app.post('/cadastro', async (req, res) =>{
     const {nome, senha, email} = req.body
     const passwordCrypt = bcrypt.hashSync(senha,2)
@@ -81,11 +87,6 @@ app.post('/', async (req, res) =>{
     
 
 })
-const schemaRegistro = joi.object({
-    valor: joi.number().positive().precision(2).required(),
-    descricao: joi.string().required(),
-    fluxo: joi.string()
-})
 
 app.post('/transacao', async (req,res) =>{
     const {valor, descricao, fluxo} = req.body;
@@ -102,6 +103,18 @@ app.post('/transacao', async (req,res) =>{
     await db.collection('transacao').insertOne({valor, descricao, fluxo, data})
 
     res.status(200).send("Transacao ok")
+})
+
+app.get('/home', async (req,res) =>{
+    
+    try{
+        const caixa = await db.collection('transacao').find().toArray()
+        res.status(200).send(caixa)
+    }catch(error){
+        console.log(error)
+        res.sendStatus(500)
+    }
+    
 })
 const port = process.env.PORT || 5000
 app.listen(port, ()=>console.log(`Servidor rodando na porta ${port}`))
