@@ -89,32 +89,56 @@ app.post('/', async (req, res) =>{
 })
 
 app.post('/transacao', async (req,res) =>{
-    const {valor, descricao, fluxo} = req.body;
+    const {valor, descricao, fluxo, userId} = req.body;
     const {authorization} = req.headers;
     const data= dayjs().format('DD-MM','pt-br').replace('-','/')
     const token  = authorization.replace("Bearer ", "")
    
-    if(!token) return res.status(401).send('Não autorizado')
+    if(!token) return res.status(401).send('Unauthorized')
     
     const validation = (schemaRegistro.validate({...{valor, descricao}, fluxo}))
     if(validation.error) return res.status(422).send(validation.error.message)
     
-  
-    await db.collection('transacao').insertOne({valor, descricao, fluxo, data})
+  try{
+    await db.collection('transacao').insertOne({valor, descricao, fluxo, data, userId})
 
     res.status(200).send("Transacao ok")
+  }catch(error){
+      console.log(error)
+      res.sendStatus(500)
+  }
+    
 })
 
 app.get('/home', async (req,res) =>{
+
+    const {authorization} = req.headers
+    const {userheaders}=req.headers
+   
+    const id = JSON.parse(userheaders)._id
     
+    const token = authorization.replace('Bearer ', '')
+    if(!token) return res.status(401).send('Unauthorized')
     try{
-        const caixa = await db.collection('transacao').find().toArray()
-        res.status(200).send(caixa)
+        
+        const caixa = await db.collection('transacao').find({userId:id}).toArray()
+      
+        res.status(200).send(caixa.reverse())
     }catch(error){
         console.log(error)
         res.sendStatus(500)
     }
     
+})
+
+app.post('/logout', async (req, res) =>{
+    try{
+    await db.collection('sessions').deleteMany()
+    res.sendStatus(200)
+    }catch(error){
+        console.log(error)
+        res.sendStatus(500)
+    }
 })
 const port = process.env.PORT || 5000
 app.listen(port, ()=>console.log(`Servidor rodando na porta ${port}`))
