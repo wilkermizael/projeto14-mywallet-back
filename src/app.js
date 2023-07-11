@@ -36,7 +36,7 @@ const schemaCadastro = joi.object({
     senha: joi.string().min(3).required()
 })
 const schemaRegistro = joi.object({
-    valor: joi.number().positive().precision(2).required(),
+    valor: joi.number().precision(1).positive().required(),
     descricao: joi.string().required(),
     fluxo: joi.string()
 })
