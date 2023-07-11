@@ -26,7 +26,7 @@ try{
 }catch(err){
     console.log(err.message)
 }
-const db = mongoClient.db()
+const db = mongoClient.db("My-wallet")
 
 
 //ESQUEMAS
