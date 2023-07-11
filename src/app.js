@@ -26,7 +26,7 @@ try{
 }catch(err){
     console.log(err.message)
 }
-const db = mongoClient.db('Mywallet')
+const db = mongoClient.db()
 
 
 //ESQUEMAS
@@ -114,7 +114,8 @@ app.get('/home', async (req,res) =>{
 
     const {authorization} = req.headers
     const {userheaders}=req.headers
-   
+  
+
     const id = JSON.parse(userheaders)._id
     
     const token = authorization.replace('Bearer ', '')
@@ -141,4 +142,5 @@ app.post('/logout', async (req, res) =>{
     }
 })
 const port = process.env.PORT || 5000
+
 app.listen(port, ()=>console.log(`Servidor rodando na porta ${port}`))
